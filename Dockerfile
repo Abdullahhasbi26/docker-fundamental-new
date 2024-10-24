@@ -1,7 +1,7 @@
 FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Update dan instal paket yang diperlukan
+# Update and install necessary packages
 RUN apt update && apt install -y software-properties-common \
     && add-apt-repository ppa:ondrej/php \
     && apt update \
@@ -12,28 +12,18 @@ RUN apt update && apt install -y software-properties-common \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Tambahkan aset statis ke direktori web
+# Add your static assets to the web directory
 COPY web /var/www/html
 
-# Konfigurasi Nginx untuk memproses file PHP
-RUN echo "server { \
-    listen 80; \
-    root /var/www/html; \
-    index index.php index.html; \
-    location / { \
-        try_files \$uri \$uri/ =404; \
-    } \
-    location ~ \.php$ { \
-        include snippets/fastcgi-php.conf; \
-        fastcgi_pass unix:/run/php/php8.2-fpm.sock; \
-    } \
-    location ~ /\.ht { \
-        deny all; \
-    } \
-}" > /etc/nginx/sites-available/default
+# Copy Nginx configuration file
+COPY config/nginx.conf /etc/nginx/sites-available/default
 
-# Expose port 80 untuk web server
+# Remove the existing symlink if it exists, and create a new symlink
+RUN rm -f /etc/nginx/sites-enabled/default \
+    && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/
+
+# Expose port 80 for the web server
 EXPOSE 80
 
-# Start PHP-FPM dan Nginx
+# Start PHP-FPM and Nginx
 CMD ["sh", "-c", "service php8.2-fpm start && nginx -g 'daemon off;'"]
