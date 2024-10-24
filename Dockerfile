@@ -13,6 +13,7 @@ RUN apt update && apt install -y software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
 # Add your static assets to the web directory
+# Add your static assets to the web directory
 COPY web /var/www/html
 
 # Copy Nginx configuration file
